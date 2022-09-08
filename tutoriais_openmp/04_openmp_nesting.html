@@ -1,0 +1,257 @@
+<!<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Cabin+Sketch">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Reenie+Beanie">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Bitter">
+		
+		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=css&skin=desert">
+		</script>
+
+		<style>
+			.prettyprint ol.linenums > li { list-style-type: decimal; }
+		</style>
+		
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-59543538-2', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-59543538-1', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+    </head>
+    <body>
+
+        <!-- Título -->
+        <div class="jumbotron jumbotron-blue">
+            <h1>Manipulando Threads em OpenMP</h1>
+
+            <h2>Aloisio Felipe</h2>
+            <img src="images/arrows/arrow1.png" class="img-responsive center-block img-logo" />
+        </div>
+
+        <!-- Cabeçalho --> 
+        <div class="jumbotron jumbotron-white">
+            <h1>4º parte</h1> 
+
+            <p>Como especificar, manipular e sincronizar threads em OpenMP.</p>		
+            <p>Como utilizar aninhanmento de threads em OpenMP.</p>
+			<p>Como utilizar sequencializar trechos de regiões paralelas.</p>
+        </div>
+
+        <!-- Pré-requisitos -->
+        <div class="jumbotron jumbotron-red">
+            <h1>pré-requisitos</h1>
+            <h3><a href="03_openmp_prime.html" class="btn btn-default">Tutorial Escalonamento de Trabalho em OpenMP</a></h3>
+		</div>
+
+        <div class="jumbotron jumbotron-white">
+            <h1>gerando números aleatórios</h1>
+
+			<p> O programa sequencial abaixo faz com que cada thread gere um número aleatório e imprima na tela seu identificador e o número gerado. Apenas uma thread anuncia que os números serão revelados. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-medium">
+#include &ltstdio.h&gt
+#include &lttime.h&gt
+#include &ltomp.h&gt
+
+int main()
+{
+  srand(time(NULL));
+
+  #pragma omp parallel 
+  {
+    int id = omp_get_thread_num();
+    int numero_secreto = rand() % 20; 
+
+    #pragma omp single    
+    printf("Vamos revelar os números secretos!\n");   
+
+    printf("Thread %d escolheu o número %d\n",id,numero_secreto);   
+
+  }
+}
+</pre></p>
+			<p> Primeiro copie o código acima para um arquivo chamado num_secretos.c. <br> Vamos então compilar o programa com o seguinte comando: </p><br>
+
+			<p> <span class="label label-default">$ gcc num_secretos.c -o num_secretos -fopenmp -lgomp</span></p><br>
+			
+			<p> Note que o flag -lgomp é necessário para utilizar a biblioteca omp.h que contém funções específicas do OpenMP, que são diferentes dos pragmas (diretivas). Para executar o programa, utilize o seguinte comando: </p><br>
+						
+			<p> <span class="label label-default">$ ./num_secretos </span></p><br>
+			
+			<p> Uma saída esperada para esse programa é a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos revelar os números secretos!
+Thread 1 escolheu o número 6
+Thread 0 escolheu o número 9
+</pre></p>
+
+			<p> A função srand() serve para iniciar o gerador de números aleatórios. Já a função rand() gera um número inteiro aleatório. Ao fazer o resto por 20, este número é limitado entre 0 e 20. Quanto ao OpenMP, temos dois comandos novos, uma diretiva (single) e uma chamada da biblioteca omp.h (omp_get_thread_num()). </p> 
+
+			<p> A <b>função omp_get_thread_num()</b> retorna o identificar da thread, que é um inteiro positivo começando em zero (thread mestre). A diretiva <b>single</b> sequencializa um trecho de código, permitindo que este trecho seja executado por apenas uma thread. Além disso, ela serve como uma barreira que sincroniza todas as threads, ou seja, as threads só podem executar o código após a barreira, quando o single tiver sido executado.</p> 
+
+			<p> Para retirar a barreira do single, basta acrescentar o comando nowait. Desta forma, as threads não precisam mais esperar a conclusão do single para continuarem. Teste essa mudança como no código abaixo.</p> 
+
+<p><pre class="prettyprint linenums codebox codebox-medium">
+    #pragma omp single nowait   
+    printf("Vamos revelar os números secretos!\n");   
+
+    printf("Thread %d escolheu o número %d\n",id,numero_secreto);   
+</pre></p>
+			
+			<p> Uma saída esperada para esse programa é a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Thread 0 escolheu o número 6
+Vamos revelar os números secretos!
+Thread 1 escolheu o número 5
+</pre></p>
+			
+			
+			<p> Equivalente ao single nowait é o comando <b>master</b>, mas ele exige que apenas a thread de identificador 0 execute a seção sequencial. Teste essa mudança como no código abaixo.</p> 
+
+<p><pre class="prettyprint linenums codebox codebox-medium">
+    #pragma omp master   
+    printf("Vamos revelar os números secretos!\n");   
+
+    printf("Thread %d escolheu o número %d\n",id,numero_secreto);   
+</pre></p>
+			
+			<p> Uma saída esperada para esse programa é a seguinte. Note que apenas a thread 1 consegue passar na frente, porque a thread 0 precisa obrigatoriamente executar a seção sequencial antes. </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Thread 1 escolheu o número 1
+Vamos revelar os números secretos!
+Thread 0 escolheu o número 3
+</pre></p>
+
+        </div>
+
+		<div class="jumbotron jumbotron-green">
+            <h1>mais e mais threads</h1>
+
+			<p> O OpenMP por default cria uma quantidade de threads igual a número de núcleos disponíveis no processador da máquina. Existe o conceito de threads aninhadas que vem por deafault desativado no OpenMP. Quando ativado, ele permite que threads sejam criadas dentro de threads, ou seja, que uma seção paralela crie mais threads dentro dela. Vamos então testar o exemplo abaixo onde habilitamos o aninhamento com com <b>omp_set_nested(1)</b>. Note que agora temos outro omp parallel dentro do primeiro. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-medium">
+#include &ltstdio.h&gt
+#include &lttime.h&gt
+#include &ltomp.h&gt
+
+int main()
+{
+  srand(time(NULL));
+
+  omp_set_nested(1);
+  #pragma omp parallel 
+  {
+    #pragma omp parallel 
+    {
+      int id = omp_get_thread_num();
+      int numero_secreto = rand() % 20; 
+
+      #pragma omp single  
+      printf("Vamos revelar os números secretos!\n");   
+
+      printf("Thread %d escolheu o número %d\n",id,numero_secreto);   
+    }
+  }
+}
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os mesmos comandos de antes. </p><br>
+			
+			<p> Uma saída possível seria a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos revelar os números secretos!
+Thread 0 escolheu o número 1
+Thread 1 escolheu o número 8
+Vamos revelar os números secretos!
+Thread 0 escolheu o número 13
+Thread 1 escolheu o número 9
+</pre></p>
+
+        	<p> Você pode notar que agora ao invés de 2 threads, foram criadas 4 threads (tudo duplicado). Mas os identificadores das threads continuaram 0 e 1, por que? Porque para cada thread da primeira seção paralela, foram criadas duas threads na seção paralela interna. Estas threads da seção interna que imprimiram seus identificadores. Como para cada seção paralela os identificadores começam de zero, cada seção de duas threads terá obrigatoriamente uma thread com identificador zero e outra com identificador 1. </p><br>
+		
+			
+			<p> Por fim, o número de threads pode ser alterado com o comando num_threads(), como no exemplo abaixo. Teste e veja o resultado. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-medium">
+  omp_set_nested(1);
+  #pragma omp parallel 
+  {
+    #pragma omp parallel num_threads(4)
+    {
+      int id = omp_get_thread_num();
+      int numero_secreto = rand() % 20; 
+
+      #pragma omp single  
+      printf("Vamos revelar os números secretos!\n");   
+
+      printf("Thread %d escolheu o número %d\n",id,numero_secreto);   
+    }
+  }
+</pre></p><br>
+
+			<p> <span class="label label-primary"> Regra 10 do Paralelismo: É comum existirem trechos de seções paralelas que devem ser <br><br>executadas por apenas uma thread.</span></p>
+
+		</div>
+		
+		
+        <div class="jumbotron jumbotron-white">
+            <h1>próximos passos</h1>
+
+            <p>Até este momento apenas trabalhamos com paralelismo de dados, ou seja, todas as threads executam a mesma tarefa em dados diferentes. Veja no nosso próximo tutorial como resolver aplicar paralelismo de tarefas, onde cada thread executa uma tarefa diferente em dados diferentes.</p>
+
+            <h3><a href="05_openmp_sections.html" class="btn btn-default">Tutorial Paralelizando Tarefas em OpenMP</a></h3>
+        </div>
+		
+        <!-- Links Úteis 
+        <div class="jumbotron jumbotron-green">
+            <h1>links úteis</h1>
+-->
+<!--            <h3><a href="http://guides.rubyonrails.org/getting_started.html" class="label label-default">Getting Started with Rails</a></h3>	
+
+            <h3><a href="http://www.sitepoint.com/easy-admin-interfaces-active-admin-rails/" class="label label-default">Easy Admin Interfaces with Active Admin</a></h3>	
+
+        </div>
+-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+    </body>
+</html>

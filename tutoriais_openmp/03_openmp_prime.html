@@ -1,0 +1,301 @@
+<!<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Cabin+Sketch">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Reenie+Beanie">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Bitter">
+		
+		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=css&skin=desert">
+		</script>
+
+		<style>
+			.prettyprint ol.linenums > li { list-style-type: decimal; }
+		</style>
+		
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-59543538-2', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-59543538-1', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+    </head>
+    <body>
+
+        <!-- Título -->
+        <div class="jumbotron jumbotron-blue">
+            <img src="" class="img-responsive center-block img-logo" />
+            <h1>Escalonamento de Trabalho em OpenMP</h1>
+
+            <h2>Aloisio Felipe</h2>
+            <img src="images/arrows/arrow1.png" class="img-responsive center-block img-logo" />
+        </div>
+
+        <!-- Cabeçalho --> 
+        <div class="jumbotron jumbotron-white">
+            <h1>3º parte</h1> 
+
+            <p>Como usar seções críticas de forma eficiente.</p>		
+            <p>Como lidar com o desbalanceamento de trabalho em laços de repetição.</p>
+			<p>Como mudar a política de escalonamento de iterações do OpenMP.</p>
+        </div>
+
+        <!-- Pré-requisitos -->
+        <div class="jumbotron jumbotron-red">
+            <h1>pré-requisitos</h1>
+            <h3><a href="02_openmp_pi.html" class="btn btn-default">Tutorial Resolvendo Condições de Disputa em OpenMP</a></h3>
+		</div>
+
+        <div class="jumbotron jumbotron-white">
+            <h1>calculando números primos</h1>
+
+			<p> O programa sequencial abaixo calcula quantos números primos existem no intervalo de 0 a 5 milhões. A primeira função chama primo é responsável por avaliar se um número é primo ou não. A função principal conta o número de primos encontrados. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+#include &ltmath.h&gt
+
+int primo(long num){
+   long d;
+
+   if(num <= 1) return 0;
+   else if(num > 3){
+      if(num % 2 == 0) return 0;
+        long max_divisor = sqrt(num);
+        for(d = 3; d <= max_divisor; d+=2){
+	  if(num % d == 0) return 0;
+        }
+   }
+   return 1;
+}
+
+int main(){
+  long max_num = 5000000;
+  long cont_primo;
+  long soma;
+  int n;
+
+  if(max_num <= 1) soma = 0;
+  else {
+    if(max_num == 2) soma = 1;
+    else {
+       soma = 1;
+       for(n = 3; n < max_num; n += 2){ 
+         cont_primo = primo(n);
+         soma = soma + cont_primo;
+       }
+    }
+  }
+  printf("Número total de primos: %ld\n", soma);
+
+  return 0;
+}
+</pre></p>
+			<p> Primeiro copie o código acima para um arquivo chamado primo.c. <br> Vamos então compilar o programa com o seguinte comando: </p><br>
+
+			<p> <span class="label label-default">$ gcc primo.c -o primo -lm</span></p><br>
+			
+			<p> Note que o flag -lm é necessário para utilizar a biblioteca math do C. Para medir o tempo de execução da aplicação, utilize o seguinte comando: </p><br>
+						
+			<p> <span class="label label-default">$ time ./primo </span></p><br>
+			
+			<p> Uma saída esperada para esse programa é a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Número total de primos: 348513
+
+real  0m4.215s
+user  0m4.204s
+sys   0m0.000s
+</pre></p>
+
+			<p> Este programa possui dois laços de repetição, qual dos dois deve ser paralelizado? Uma dica é sempre tentar paralelizar o laço mais externo, pois a tarefa fica maior, ou seja, a quantidade de trabalho feita por cada iteração do laço requer mais computação. No caso de processadores com múltiplos núcleos, quando maior a tarefa, geralemente é melhor, pois as threads são melhor aproveitadas. Então vamos paralelizar o laço da função principal com no código abaixo: </p> 
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+int main(){
+  long max_num = 5000000;
+  long cont_primo;
+  long soma;
+  int n;
+
+  if(max_num <= 1) soma = 0;
+  else {
+    if(max_num == 2) soma = 1;
+    else {
+       soma = 1;
+       #pragma omp parallel for private (cont_primo) reduction(+:soma)
+       for(n = 3; n < max_num; n += 2){ 
+         cont_primo = primo(n);
+         soma = soma + cont_primo;
+       }
+    }
+  }
+  printf("Número total de primos: %ld\n", soma);
+
+  return 0;
+}
+</pre></p>
+
+			<p> Note que a paralelização deste código é muito similar a do PI. O cont_primo deve ser privado, pois ele é usado apenas dentro de uma mesma iteração. Enquanto a variável soma sofre uma redução, acumulando um somatório para contar a quantidade total de primos. Vamos então compilar o programa com o seguinte comando: </p><br>
+
+			<p> <span class="label label-default">$ gcc primo.c -o primo -lm -fopenmp</span></p><br>
+			
+			<p> <span class="label label-default">$ time ./primo </span></p><br>
+			
+			<p> Uma saída esperada para esse programa é a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Número total de primos: 348513
+
+real  0m2.893s
+user  0m4.665s
+sys   0m0.004s
+</pre></p>
+			
+			<p> A aplicação foi paralelizada corretamente e obteve um speedup de aproximadamente 1,45 (4,2/2,9). </p>	
+
+        </div>
+
+		<div class="jumbotron jumbotron-green">
+            <h1>usando seções críticas de forma consciente</h1>
+
+			<p> Apesar da paralelização deste program ser parecida com o PI, eles se diferenciam em dois aspectos. O primeiro, o speedup não foi linear, ou seja, próximo de 2. Além disso, no PI a inclusão de um critical tornava o tempo de execução do programa inaceitável. Vamos então testar primeiro a substituição de uma redução por um critical como no código abaixo. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+       #pragma omp parallel for private (cont_primo) 
+       for(n = 3; n < max_num; n += 2){ 
+         cont_primo = primo(n);
+         #pragma omp critical
+         soma = soma + cont_primo;
+       }
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os mesmos comandos de antes. </p><br>
+			
+			<p> Uma saída possível seria a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Número total de primos: 348513
+
+real  0m2.961s
+user  0m4.866s
+sys   0m0.008s
+</pre></p>
+
+        	<p> Você pode notar que o tempo de execução com a redução e com o critical foram praticamente iguais. Mas a inclusão de uma seção crítica não torna o código muito lento? Depende, se fosse sempre o caso, talvez ela nem existiria. Nesta contagem de números primos, ao contrário do PI, cada iteração do laço de repetição tem quantidade de trabalho diferente, pois para descobrir se um número pequeno é primo, gasta-se muito menos tempo do que para calcular se um número grande é primo. Para observar isso, basta olhar na função primo(), que você observará que o laço de repetição depende do máximo dividor encontrado. Ou seja, o número de iterações do laço varia de acordo com o número primo. </p><br>
+		
+<p><pre class="prettyprint linenums codebox codebox-small">
+int primo(long num){
+   long d;
+
+   if(num <= 1) return 0;
+   else if(num > 3){
+      if(num % 2 == 0) return 0;
+        long max_divisor = sqrt(num);
+        for(d = 3; d <= max_divisor; d+=2){
+	  if(num % d == 0) return 0;
+        }
+   }
+   return 1;
+}
+</pre></p>
+
+        	<p> A conclusão é que as duas threads dificilmente vão entrar na seção crítica ao mesmo tempo. Ou seja, elas não ficarão dormindo e acordando o tempo todo como no exemplo do PI. Desta forma, o uso de uma seção crítica é bastante razoável e tem desempenho comparável a redução.  </p><br>
+
+        	<p> Apesar disso, esse desbalanceamento da quantidade de trabalho por iteração causa um outro problema, conhecido como desbalanceamento de carga. Se as iterações do laço são divididas igualmente entre as threads (metade pra cada uma), o desbalanceamento pode fazer com que uma thread tenha muito mais trabalho que a outra. Isso faz com que uma thread acabe seu trabalho muito cedo e fique ociosa até que a outra termine. Esta é uma possível causa para que a nossa versão paralela não tenha alcançado um speedup linear.  </p><br>
+			
+			<p> <span class="label label-primary"> Regra 8 do Paralelismo: Seções críticas são eficientes desde que utilizadas <br><br> em situações onde a probabilidade de múltiplas threads utilizarem-na ao mesmo tempo é pequena. </span></p>
+
+		</div>
+		
+		
+        <div class="jumbotron jumbotron-red">
+            <h1>balanceamento de carga de trabalho</h1>
+
+        	<p> Para resolver o problema de desbalanceamento, o OpenMP tem diferentes políticas de distribuição de trabalho entre as threads através do comando schedule(pol,block). Neste comando é possível especificar três políticas: estática (static), dynamic (dinâmica) e guiada (guided). Além disso, é possível especificar o tamanho das tarefas ou bloco de iterações que cada thread deve executar. O OpenMP geralmente utiliza o escalonamento estático que no nosso exemplo pode ser ruim, pois neste caso ele distribui as iterações em dois blocos, um para cada thread. Ou seja, a thread que pegar o bloco com números maiores vai demorar mais pra terminar, deixando a outra thread ociosa.  </p><br>
+			
+        	<p> Vamos mudar a política para dinâmica com blocos de tamanho 100 como no código abaixo.  </p><br>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+       #pragma omp parallel for private (cont_primo) reduction(+:soma) schedule (dynamic,100)
+       for(n = 3; n < max_num; n += 2){ 
+         cont_primo = primo(n);
+         soma = soma + cont_primo;
+       }
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os mesmos comandos utilizados anteriormente. </p><br>
+			
+			<p> Uma saída possível seria a seguinte: </p>
+<p><pre class="prettyprint linenums codebox codebox-small">
+Número total de primos: 348513
+
+real  0m2.553s
+user  0m5.035s
+sys	  0m0.012s
+</pre></p>
+
+			<p> O tempo de execução da aplição caiu de 2,9 para 2,5, ou seja, o speedup foi para 1,7. A política dinâmica, ao contrário da estática, vai atribuindo para as threads um bloco de 100 iterações de cada vez. Assim que uma thread termina um bloco, ela busca o próximo, se uma thread executa um bloco com números grandes, elas provavelmente computará menos iterações. Uma thread que executa blocos com número pequenos, provavelmente executará mais blocos e as threads terminarão quase ao mesmo tempo, minimizando a ociosidade e consequentemente o desbalanceamento. </p>	
+
+			<p> A política de escalonamento guiada tem comportamento igual a dinâmica, mas o tamanho dos blocos vai diminuindo ao longo da execução até atingir o tamanho do bloco especificado. Ela tende a reduzir ainda mais o desbalaceamento, evitando que muito trabalho sobre para apenas uma thread no fim da execução. Experimente, varie as políticas e o tamanho do bloco para ver se encontra um tempo de execução ainda menor.</p>	<br>
+
+			
+			<p> <span class="label label-primary"> Regra 9 do Paralelismo: O desbalanceamento de carga pode ser resolvido utilizando-se <br><br> políticas de escalonamento de tarefas. </span></p>
+	
+        </div>
+
+        <div class="jumbotron jumbotron-white">
+            <h1>próximos passos</h1>
+
+            <p>Como controlar o número de threads? Como criar threads aninhadas?  Veja no nosso próximo tutorial como manipular threads em OpenMP.</p>
+
+            <h3><a href="04_openmp_nesting.html" class="btn btn-default">Tutorial Manipulando Threads em OpenMP</a></h3>
+        </div>
+		
+        <!-- Links Úteis 
+        <div class="jumbotron jumbotron-green">
+            <h1>links úteis</h1>
+-->
+<!--            <h3><a href="http://guides.rubyonrails.org/getting_started.html" class="label label-default">Getting Started with Rails</a></h3>	
+
+            <h3><a href="http://www.sitepoint.com/easy-admin-interfaces-active-admin-rails/" class="label label-default">Easy Admin Interfaces with Active Admin</a></h3>	
+
+        </div>
+-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+    </body>
+</html>

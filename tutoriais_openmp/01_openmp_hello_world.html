@@ -1,0 +1,318 @@
+<!<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Cabin+Sketch">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Reenie+Beanie">
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Bitter">
+		
+		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=css&skin=desert">
+		</script>
+
+		<style>
+			.prettyprint ol.linenums > li { list-style-type: decimal; }
+		</style>
+		
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-59543538-2', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-59543538-1', 'auto');
+            ga('send', 'pageview');
+
+        </script>
+    </head>
+    <body>
+
+        <!-- Título -->
+        <div class="jumbotron jumbotron-blue">
+           
+            <h1>Introdução a Programação <br> Paralela com OpenMP</h1>
+            <h2>Aloísio Felipe</h2>
+            <img src="images/arrows/arrow1.png" class="img-responsive center-block img-logo" />
+			<p>O OpenMP (do inglês Open Multi-Processing, ou Multi-processamento aberto) é uma interface de programação de aplicativo(API) para a programação multi-processo de memória compartilhada em múltiplas plataformas. Permite acrescentar simultaneidade aos programas escritos em C, C++ e Fortran sobre a base do modelo de execução fork-join. Está disponível em muitas arquiteturas, incluindo as plataforma Unix e Microsoft Windows. É constituída por um conjunto de diretivas de compilador, rotinas de biblioteca, e variáveis de ambiente que influenciam o comportamento do tempo de execução. Definido em conjunto por um grupo principal de fornecedores de hardware e de software, o OpenMP é um modelo de programação portável e escalável que proporciona aos programadores uma interface simples e flexível para o desenvolvimento de aplicações paralelas para as plataformas que vão dos computadores de escritório até os supercomputadores. Uma aplicação construída com um modelo de programação paralela híbrido pode ser executado em um cluster de computadores utilizando tanto os OpenMP e MPI, ou mais transparentemente através das extensões do OpenMP para os sistemas de memória distribuída.<p>
+        </div>
+
+        <!-- Cabeçalho --> 
+        <div class="jumbotron jumbotron-white">
+            <h1>Aprendendo OpenMP</h1> 
+
+            <p>Como fazer um mesmo código executar em paralelo.</p>		
+            <p>Como dividir as interações de um loop entre threads.</p>
+			<p>Como replicar uma variável para várias threads.</p>
+        </div>
+
+        <div class="jumbotron jumbotron-red">
+            <h1>contando de 1 a 4</h1>
+
+			<p> O programa sequencial abaixo que conta de 1 a 4 é executado por apenas uma thread.</p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+int main() 
+{
+  int i;
+
+  printf("Vamos contar de 1 a 4\n");
+   
+  for(i = 1; i <= 4; i++)
+	printf("%d\n",i);
+
+}
+</pre></p>
+
+			<p> Primeiro vou copiar o código acima para um arquivo chamado contar.c. <br> Vamos então compilar e executar o programa com os seguintes comandos: </p><br>
+			
+			<p> <span class="label label-default">$ gcc contar.c -o contar</span></p><br>
+			
+			<p> <span class="label label-default">$ ./contar</span></p><br>
+			
+			<p> A saída esperada para esse programa é a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos contar de 1 a 4
+1
+2
+3
+4		
+</pre></p>
+
+			<p> Não importa a quantidade de núcleos do seu processador, este código sempre será executado uma vez em apenas um núcleo. </p>
+			
+
+        </div>
+
+		<div class="jumbotron jumbotron-white">
+            <h1>replicando o código entre múltiplas threads</h1>
+
+			<p> Para replicar o código abaixo, podemos usar o OpenMP. Ele é uma ferramenta que auxilia na paralelização automática de código. Para fazer o mesmo trecho de código executar em todos os núcleos do seu processador, basta adicionar a diretiva <b>#pragma omp parallel {...}</b> no respectivo trecho de código. O OpenMP vai automaticamente criar várias threads (ex: em um quad-core, ele cria 4 threads) que executam exatamente o mesmo código. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+int main() 
+{
+  #pragma omp parallel
+  {
+     int i;
+     printf("Vamos contar de 1 a 4\n");
+
+     for(i = 1; i <= 4; i++)
+       printf("%d\n",i);
+  }
+}
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os seguintes comandos, note que é necessário adicionar uma diretiva <b>-fopenmp</b> para habilitar o uso do OpenMP: </p><br>
+			
+			<p> <span class="label label-default">$ gcc contar.c -o contar -fopenmp</span></p><br>
+			
+			<p> <span class="label label-default">$ ./contar</span></p><br>
+			
+			<p> Uma saída possível seria a a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos contar de 1 a 4
+1
+2
+3
+4
+Vamos contar de 1 a 4
+1
+2
+3
+4
+</pre></p>
+
+			<p>Ao acrecentar um parallel, o que vc espera na saída do programa? Provavelmente que ele replique o código pra todas as threads. Se vc tem um dual core, então que a contagem de 1 a 4 fosse feita duas vezes. Mas foi isso que aconteceu? <br>Execute o código mais 10 vezes. <br>É possível notar que ele gerou outras saídas diferentes. Porque? Como as duas threads executam ao mesmo tempo, <b>não tem como garantir qualquer ordem de execução.</p> <br>
+			
+			<p> <span class="label label-primary"> Regra 1 do Paralelismo: Não se pode garantir a ordem de execução de threads em paralelo. </span></p>
+			
+		</div>
+		
+		
+		
+        <div class="jumbotron jumbotron-green">
+            <h1>replicando apenas parte do código</h1>
+
+			<p> Para replicar apenas a contagem de 1 a 4,basta adicionar a diretiva <b>#pragma omp parallel</b> antes da estrutura de repetição (for). Quando as chaves {}, ou seja, o escopo do bloco de código não é especificado, o OpenMP automaticamente paraleliza o comando logo abaixo da diretiva. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+int main() 
+{
+  int i;
+
+  printf("Vamos contar de 1 a 4\n");
+
+  #pragma omp parallel
+  for(i = 1; i <= 4; i++)
+    printf("%d\n",i);
+}
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os seguintes comandos, note que é necessário adicionar uma diretiva -fopenmp para habilitar o uso do OpenMP: </p><br>
+			
+			<p> <span class="label label-default">$ gcc contar.c -o contar -fopenmp</span></p><br>
+			
+			<p> <span class="label label-default">$ ./contar</span></p><br>
+			
+			<p> Uma saída possível seria a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos contar de 1 a 4
+1
+2
+3
+4
+1
+</pre></p>
+
+			<p>Ao acrecentar um <b>parallel</b>, o que vc espera na saída do programa? Provavelmente que ele imprimisse a contagem de 1 a 4 duas vezes, no caso de um dual core. Mas não foi isso que aconteceu, por que? <br>Execute o código mais 10 vezes. <br>Por que estão faltando números? 
+			</p>
+
+			<p> Quando duas ou mais threads compartilham uma mesma variável, neste exemplo a variável "i", o valor da variável pode ficar imprevisível. No exemplo acima, a thread 0 leu o valor 1 de "i" ao mesmo tempo que a thread 1, mas a thread 0 foi mais rápida e executou todas as iterações incrementando o contador "i" até 5, terminando sua execução. Quando a thread 1 decide continuar sua execução, ela imprime o valor 1 e quando vai conferir o valor de "i" na condição do loop, ela descobre que ele vale 5, também saindo do loop. </span></p><br>
+			
+			<p> <span class="label label-primary"> Regra 2 do Paralelismo: Quando threads compartilham uma mesma variável, <br><br> o valor da variável pode ficar imprevisível.  </span></p>
+
+        </div>
+
+       <div class="jumbotron jumbotron-red">
+            <h1>lidando com variáveis compartilhadas</h1>
+
+			<p> Para resolver o problema de ter apenas um contador "i" para as threads, basta replicar o contador em cada thread. Para isso é necessário declarar o contador dentro da região paralela, ou seja, dentro da estrutura for. </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+int main() 
+{
+  printf("Vamos contar de 1 a 4\n");
+
+  #pragma omp parallel
+  for(int i = 1; i <= 4; i++)
+    printf("%d\n",i);
+}
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os mesmos comandos de antes. </p><br>
+			
+			<p> Uma saída possível seria a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos contar de 1 a 4
+1
+2
+3
+4
+1
+2
+3
+4
+</pre></p>
+
+			<p>Ao declara o contador "i" dentro da região paralela, cada thread agora tem a sua cópia privada. Ou seja, não existe mais o compartilhamento de variáveis.</p>
+
+			<p> Outra forma de resolver este problema, é usar o comando <b> private </b> que transforma variáveis compartilhadas em variáveis privadas, como no exemplo abaixo. </p><br>
+			
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+int main() 
+{
+  int i;
+
+  printf("Vamos contar de 1 a 4\n");
+
+  #pragma omp parallel private(i)
+  for(i = 1; i <= 4; i++)
+    printf("%d\n",i);
+}
+</pre></p>
+
+        </div>
+		
+		
+		 <div class="jumbotron jumbotron-yellow">
+            <h1>distribuindo o trabalho</h1>
+
+			<p> Mas se ao invés de replicar o código, eu queira dividir o trabalho entre as threads? Para isso existe o comando <b>#pragma omp parallel for</b> especificamente para distribuir as iterações do for entre as threads. Ou seja, cada iteração do for é executada apenas uma vez, mas cada thread pega uma iteração diferente.  </p>
+			
+<p><pre class="prettyprint linenums codebox codebox-small">
+#include &ltstdio.h&gt
+int main() 
+{
+  printf("Vamos contar de 1 a 4\n");
+
+  #pragma omp parallel for
+  for(int i = 1; i <= 4; i++)
+    printf("%d\n",i);
+}
+</pre></p>
+
+			<p> Vamos compilar e executar o programa com os mesmos comandos de antes. </p><br>
+			
+			<p> Uma saída possível seria a seguinte: </p>
+
+<p><pre class="prettyprint linenums codebox codebox-small">
+Vamos contar de 1 a 4
+1
+3
+4
+2
+</pre></p>
+
+			<p>Execute várias vezes e você notará que a ordem pode sempre variar, mas necessariamente cada iteração ocorrerá uma única vez.</p>
+
+			<p> A maioria dos programas paralelos são feitos através da paralelização de um for, que geralmente é onde o programa gasta mais tempo e portanto deve ser paralelizado. </p><br>
+			
+			<p> <span class="label label-primary"> Regra 3 do Paralelismo: Estruturas de repetição são os melhores candidatos para a paralelização.  </span></p>
+
+
+        </div>
+
+        
+		
+        <!-- Links Úteis -->
+ <!--       <div class="jumbotron jumbotron-green">
+            <h1>links úteis</h1>
+
+<!--            <h3><a href="http://guides.rubyonrails.org/getting_started.html" class="label label-default">Getting Started with Rails</a></h3>	
+
+            <h3><a href="http://www.sitepoint.com/easy-admin-interfaces-active-admin-rails/" class="label label-default">Easy Admin Interfaces with Active Admin</a></h3>	
+
+        </div>
+-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+    </body>
+</html>

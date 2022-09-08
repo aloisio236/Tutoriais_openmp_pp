@@ -1,0 +1,35 @@
+.jumbotron-yellow{background: #fafad2; color: black; text-align: center; margin-top: -30px;}
+.jumbotron-blue{background: #4679BD; color: white; text-align: center; margin-top: -30px;}
+.jumbotron-green{background: green; color: white; text-align: center; margin-top: -30px;}
+.jumbotron-white{background: white; color: black; text-align: center; margin-top: -30px;}
+.jumbotron-red{background: #DE5555; color: black; text-align: center; margin-top: -30px;}
+.jumbotron-black{background: black; color: white; text-align: center; margin-top: -30px;}
+.jumbotron-yellowed{background: FCF7A3; color: black; text-align: center; margin-top: -30px;}
+.jumbotron-bluetifany{background: #00BFFF; color: white; text-align: center; margin-top: -30px;}
+.jumbotron-orange{background: #FE9A2E; color: black; text-align: center; margin-top: -30px;}
+.jumbotron-dark-pink{background: #993366; color: white; text-align: center; margin-top: -30px;}
+.jumbotron-light-green{background: #d5fca3; color: black; text-align: center; margin-top: -30px;}
+
+
+.color-white{font-family: 'Bitter', serif; font-size: 150% !important;  color: white;}
+.color-blue{font-family: 'Bitter', serif; font-size: 150% !important;  color: blue;}
+.color-red{font-family: 'Bitter', serif; font-size: 150% !important;  color: red;}
+
+h1 {	font-family: 'Cabin Sketch', serif; margin-bottom: 50px}
+h2 {	font-family: 'Reenie Beanie', serif; font-size: 300%; }
+
+p {	font-family: 'Bitter', serif; font-size: 150% !important; }
+a {	font-family: 'Bitter', serif; font-size: 80% !important; }
+
+p span {	font-family: 'Courier', serif; font-size: 90% !important; }
+.img-logo {  width:100px; height: auto; overflow:hidden; margin-top: 20px}
+.img-little {  width:200px; height: auto; overflow:hidden;}
+.img-small {  width:400px; height: auto; overflow:hidden;}
+.img-medium {  width:600px; height: auto; overflow:hidden;}
+.img-large {  width:800px; height: auto; overflow:hidden;}
+
+.codebox {border-style: none;  font-weight: bold; text-align:left; align: center; word-wrap:break-word; background: gray; color: white; margin: 0 auto; display: block;}
+
+.codebox-large {width: 900px;}
+.codebox-medium {width: 700px;}
+.codebox-small {width: 500px;}
